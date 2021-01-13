@@ -23,5 +23,7 @@ class Member {
   /// 체크리스트.
   final List<Checklist> checklist = [];
 
+  final List<String> commentList = [];
+
   Member(this.name, this.gender, this.age);
 }

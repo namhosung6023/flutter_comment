@@ -21,8 +21,10 @@ class _MemberChecklistState extends State<MemberChecklist> {
 
   Checklist workout = Checklist("", "", "", "", false);
   List<Checklist> checkList = [];
+  List<String> commentList = [];
   String trainerComment;
   String checkListId;
+
 
   void _getdata() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -35,18 +37,27 @@ class _MemberChecklistState extends State<MemberChecklist> {
     dio.options.headers["accesstoken"] = "$token";
     Response response =
     await dio.get('http://10.0.2.2:3000/premium/checklist/user/$userId');
+    print(response.data['checklist'][0]['userComment'][0].toString());
     setState(() {
-      trainerComment = response.data['checklist'][0]['trainerComment'];
-      checkListId = response.data['checklist'][0]['_id'];
-      List workoutList = response.data['checklist'][0]['workoutlist'];
-      for (int i = 0; i < workoutList.length; i++) {
-        Checklist workout = Checklist(
-            workoutList[i]['name'],
-            workoutList[i]['contents'],
-            checkListId,
-            workoutList[i]['_id'],
-            workoutList[i]['isEditable']);
-        checkList.add(workout);
+      if(response.data['checklist'].length > 0){
+        for (int i = 0; i < response.data['checklist'][0]['userComment'].length; i++) {
+          print('hi');
+          commentList.add(response.data['checklist'][0]['userComment'][i].toString());
+          print(commentList);
+
+        }
+        trainerComment = response.data['checklist'][0]['trainerComment'];
+        checkListId = response.data['checklist'][0]['_id'];
+        List workoutList = response.data['checklist'][0]['workoutlist'];
+        for (int i = 0; i < workoutList.length; i++) {
+          Checklist workout = Checklist(
+              workoutList[i]['name'],
+              workoutList[i]['contents'],
+              checkListId,
+              workoutList[i]['_id'],
+              workoutList[i]['isEditable']);
+          checkList.add(workout);
+        }
       }
     });
   }
@@ -77,6 +88,23 @@ class _MemberChecklistState extends State<MemberChecklist> {
     }
   }
 
+  void _postUserComment(String comment) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+
+    Dio dio = new Dio();
+    dio.options.headers["accesstoken"] = "$token";
+
+    Map<String, dynamic> data = {
+      "userComment": comment,
+      "checklistId": checkListId,
+    };
+    String stringData = jsonEncode(data);
+
+    Response response = await dio.post('http://10.0.2.2:3000/premium/comment/user/$userId', data: stringData);
+    print(response);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -88,6 +116,8 @@ class _MemberChecklistState extends State<MemberChecklist> {
   Widget build(BuildContext context) {
     if (this._member.checklist.length == 0)
       this._member.checklist.addAll(checkList);
+    if (this._member.commentList.length == 0)
+      this._member.commentList.addAll(commentList);
     return ListView(
       padding: const EdgeInsets.only(left: 32.0, right: 32.0),
       children: [
@@ -118,8 +148,11 @@ class _MemberChecklistState extends State<MemberChecklist> {
         ...this._member.checklist.map((e) => _buildChecklistItem(e)).toList(),
         const SizedBox(height: 24.0),
         _buildTrainerComment(),
-        _buildUserComment(),
-        _buildMemberComment(),
+        const SizedBox(height: 8.0),
+        ...this._member.commentList.map((e) => _buildUserComment(e)).toList(),
+        // _buildUserComment(),
+        const SizedBox(height: 8.0),
+        _buildTextComposer(),
         const SizedBox(height: CommonUtils.DEFAULT_PAGE_BOTTOM_PADDING),
       ],
     );
@@ -157,7 +190,7 @@ class _MemberChecklistState extends State<MemberChecklist> {
   }
 
   /// 회원의 메세지 위젯 빌드.
-  Widget _buildUserComment() {
+  Widget _buildUserComment(commentList) {
     // final profile = ClipOval(
     //   child: Image.asset('assets/img_sample.png', fit: BoxFit.cover,
     //       width: 40.0,
@@ -167,7 +200,7 @@ class _MemberChecklistState extends State<MemberChecklist> {
     final message = Container(
       padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 16.0),
       child: Text(
-        trainerComment ?? '',
+        commentList ?? '',
         style: TextStyle(fontSize: 12.0, height: 1.5),
       ),
       decoration: BoxDecoration(
@@ -228,29 +261,29 @@ class _MemberChecklistState extends State<MemberChecklist> {
   //       ));
   // }
 
-  Widget _buildMemberComment() {
-    return Column(
-      children: [
-        const SizedBox(height: 8.0),
-        TextField(
-          style: TextStyle(fontSize: 13.0),
-          maxLines: 1,
-          decoration: InputDecoration(
-            isDense: true,
-            contentPadding: EdgeInsets.all(16.0),
-            hintText: '트레이너에게 코멘트 남기기'
-            // border: OutlineInputBorder(
-            //     borderRadius: BorderRadius.circular(8.0)),
-          ),
-        ),
-        const SizedBox(height: 0.0),
-        Align(
-          alignment: Alignment(-0.1, 10.10),
-          child: Icon(Icons.arrow_circle_up, size: 30.0,
-              color: CommonUtils.getPrimaryColor()),
-        ),
-        const SizedBox(height: 24.0),
-      ],
+  Widget _buildTextComposer() {
+    return IconTheme(
+      data: IconThemeData(color: Theme.of(context).accentColor),
+      child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 8.0),
+          child: Row(
+            children: <Widget>[
+              Flexible(
+                child: TextField(
+                  style: TextStyle(fontSize: 13),
+                  controller: _textController,
+                  decoration:
+                   InputDecoration(hintText: "트레이너에게 코멘트 남기기"),
+                ),
+              ),
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 4.0),
+                child: IconButton(
+                    icon: Icon(Icons.send),
+                    onPressed: () => _postUserComment(_textController.text)),
+              ),
+            ],
+          )),
     );
   }
 

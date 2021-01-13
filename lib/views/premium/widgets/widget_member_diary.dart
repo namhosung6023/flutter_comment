@@ -29,7 +29,7 @@ class _MemberDiaryState extends State<MemberDiary> {
 
   @override
   void initState() {
-    getImage();
+    // getImage();
     super.initState();
     CommonUtils.setKeyboardListener(context);
   }
