@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:dio/dio.dart';
 import 'package:fitwith/utils/common_utils.dart';
 import 'package:fitwith/views/premium/models/model_checklist.dart';
@@ -37,7 +36,7 @@ class _MemberChecklistState extends State<MemberChecklist> {
     dio.options.headers["accesstoken"] = "$token";
     Response response =
     await dio.get('http://10.0.2.2:3000/premium/checklist/user/$userId');
-    print(response.data['checklist'][0]['userComment'][0].toString());
+    print(response.data['checklist'][0]);
     setState(() {
       if(response.data['checklist'].length > 0){
         for (int i = 0; i < response.data['checklist'][0]['userComment'].length; i++) {
@@ -189,7 +188,7 @@ class _MemberChecklistState extends State<MemberChecklist> {
     );
   }
 
-  /// 회원의 메세지 위젯 빌드.
+  /// 여기부터 수정해야됨
   Widget _buildUserComment(commentList) {
     // final profile = ClipOval(
     //   child: Image.asset('assets/img_sample.png', fit: BoxFit.cover,
@@ -221,45 +220,6 @@ class _MemberChecklistState extends State<MemberChecklist> {
     );
   }
 
-  ///
-  // Widget _buildMemberComment() {
-  //   return IconTheme(
-  //       data: IconThemeData(color: Theme
-  //           .of(context)
-  //           .accentColor),
-  //       child: Container(
-  //         child: Row(
-  //           children: [
-  //             const SizedBox(height: 8.0),
-  //             TextField(
-  //               style: TextStyle(fontSize: 13.0),
-  //               maxLines: 1,
-  //               decoration: InputDecoration(
-  //                   isDense: true,
-  //                   contentPadding: EdgeInsets.all(16.0),
-  //                   hintText: '트레이너에게 코멘트 남기기'
-  //                 // border: OutlineInputBorder(
-  //                 //     borderRadius: BorderRadius.circular(8.0)),
-  //               ),
-  //             ),
-  //             Align(
-  //               // margin: const EdgeInsets.symmetric(horizontal: 1.0),
-  //               child: IconButton(
-  //                   icon: Icon(Icons.send),
-  //                   onPressed: () => (_textController.text)),
-  //             ),
-  //             const SizedBox(height: 2.0),
-  //             // const SizedBox(height: 8.0),
-  //             // Align(
-  //             //   alignment: Alignment.centerRight,
-  //             //   child: Icon(Icons.arrow_circle_up,
-  //             //       size: 40.0, color: CommonUtils.getPrimaryColor()),
-  //             // ),
-  //             const SizedBox(height: 24.0),
-  //           ],
-  //         ),
-  //       ));
-  // }
 
   Widget _buildTextComposer() {
     return IconTheme(
